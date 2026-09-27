@@ -1,64 +1,40 @@
-# DocuMind — Chat with Your Documents (RAG, with citations + evals)
+# DocuMind
 
-**The skill every AI job post lists.** Upload a PDF → it's chunked, embedded and stored in a vector DB → ask questions and get answers **with page-level citations** — plus a refusal when the docs don't contain the answer. Includes a 20-question eval harness so you can quote real numbers.
+Chat with your documents and get answers that cite the exact page they came from. Upload a PDF, ask questions, and if the answer is not in the document the app says so instead of making something up.
 
-Pick a vertical to avoid looking like a toy: HR policy assistant (sample doc included), syllabus Q&A, or a support bot for a real product's docs.
+I kept it to one use case (an HR policy assistant, with a sample company handbook included) so the retrieval quality could actually be measured rather than vibe-checked.
 
-## Features
+## How it works
 
-- **Ingestion** — PDF (PyMuPDF, page numbers preserved) / TXT / MD → paragraph-aware recursive chunking → embeddings → **ChromaDB** (persistent, local, no server needed)
-- **Two chunking strategies** (`recursive` vs `fixed` baseline) selectable at upload and in the eval — do the A/B comparison and put it in the README
-- **Grounded generation** — system prompt forbids outside knowledge, requires inline `[source: doc p.N]` citations
-- **Refusal rule** — if the best retrieved chunk is too dissimilar (cosine distance > threshold), the LLM is never called: cheaper and safer than hoping the model behaves
-- **Eval harness** — retrieval hit rate, correct-page accuracy, answer keyword accuracy, refusal correctness, p50 latency → writes `evals/eval_report.md`
+A PDF is parsed with PyMuPDF page by page, so page numbers survive into storage. Text is chunked along paragraph boundaries (with a naive fixed-window mode available for comparison), embedded with the default MiniLM ONNX model, and stored in a local ChromaDB collection.
 
-## Architecture
+At question time the top chunks are retrieved and passed to the model with a prompt that only allows answers from the provided excerpts, with inline citations in `[source: doc p.N]` form. If the best match is still too far away (cosine distance above 0.9) the model is never called at all and you get a fixed refusal. That check is cheaper than paying for a generation and hoping the model behaves.
 
-```mermaid
-flowchart LR
-  PDF[Upload PDF/TXT/MD] --> X[PyMuPDF extract<br/>page-numbered text]
-  X --> C[Chunking<br/>recursive / fixed A/B]
-  C --> E[all-MiniLM-L6-v2<br/>ONNX embeddings]
-  E --> V[(ChromaDB<br/>cosine index)]
-  Q[Question] --> R[Top-k retrieval]
-  V --> R
-  R -->|"distance > 0.9 → refuse<br/>(no LLM call)"| D{Grounded?}
-  R --> G[LLM w/ strict<br/>grounded prompt]
-  G --> A[Answer + [source: doc p.N] citations]
+## Running it
+
 ```
-
-## Run it
-
-```bash
 python -m venv .venv
-.venv/Scripts/pip install -r requirements.txt      # Windows (Linux/macOS: .venv/bin/pip)
-cp .env.example .env                               # set OPENAI_API_KEY (+ BASE_URL / LLM_MODEL)
+.venv/Scripts/pip install -r requirements.txt
+cp .env.example .env    # set OPENAI_API_KEY
 .venv/Scripts/python -m uvicorn app.main:app --reload
-# open http://localhost:8000
 ```
 
-First upload downloads the embedding model (~80 MB ONNX, cached after that). Fully works offline for retrieval; generation needs the API key.
+Open http://localhost:8000. The first upload downloads the embedding model (about 80 MB, cached afterwards). Retrieval works fully offline; generation needs the key.
 
-## Run the eval (the interview gold)
+## The eval
 
-```bash
-# retrieval-only, zero API key needed:
-.venv/Scripts/python evals/run_eval.py --retrieval-only
-# full eval (needs .env with API key):
-.venv/Scripts/python evals/run_eval.py
-# A/B the chunking strategies:
-.venv/Scripts/python evals/run_eval.py --retrieval-only --strategy fixed
+There is a 20-question benchmark in `evals/` against the sample handbook, including one out-of-scope question that must trigger the refusal. The sample PDF is generated with fixed page breaks so page accuracy is actually testable.
+
+```
+.venv/Scripts/python evals/run_eval.py --retrieval-only   # no API key needed
+.venv/Scripts/python evals/run_eval.py                    # full, needs key
+.venv/Scripts/python evals/run_eval.py --retrieval-only --strategy fixed   # A/B chunking
 ```
 
-Sample doc (`data/sample/company_handbook.txt`) has known page locations for all 20 questions, including one out-of-scope question that must trigger the refusal.
+Current results on the sample document (recursive chunking): 100% retrieval hit rate, 100% correct-page accuracy in the top 3, p50 retrieval latency around 160 ms. The report lands in `evals/eval_report.md`. These numbers are for a 6-page document, so treat them as a sanity check of the pipeline rather than a benchmark of the approach.
 
-## Resume bullet
+## Things I would do next
 
-> Built a RAG document assistant with page-level citations using ChromaDB + a distance-threshold refusal rule; evaluated on a 20-question benchmark — X% retrieval hit rate, Y% answer accuracy, p50 retrieval Z ms; A/B-tested recursive vs fixed chunking.
-
-## Roadmap
-
-- [ ] Swap Chroma → **pgvector** (Neon free tier) — the JD keyword; keep Chroma as the fallback
-- [ ] Streaming answers (SSE) + conversation memory
-- [ ] Reranker (cross-encoder) for top-20 → top-5
-- [ ] Deploy: Render/Railway (FastAPI) + Vercel (Next.js frontend upgrade)
+- Move from Chroma to pgvector so the store lives in Postgres.
+- Stream the answers like a normal chat, and keep conversation history.
+- Add a reranker between retrieval and generation, which matters more as the document count grows.
