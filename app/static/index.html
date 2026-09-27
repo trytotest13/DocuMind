@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>DocuMind — chat with your documents</title>
+  <title>DocuMind: chat with your documents</title>
   <style>
     :root { color-scheme: light; }
     * { box-sizing: border-box; }
@@ -11,27 +11,30 @@
            background: #f8fafc; color: #0f172a; }
     .wrap { max-width: 880px; margin: 0 auto; padding: 24px 16px 64px; }
     header { display: flex; align-items: baseline; justify-content: space-between; }
-    h1 { font-size: 22px; margin: 0; } h1 span { color: #4f6ef7; }
+    h1 { font-size: 22px; margin: 0 0 10px; padding-bottom: 8px;
+     border-bottom: 3px double #0F766E; } h1 span { color: #0F766E; }
     .status { font-size: 12px; color: #64748b; }
     .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 16px; margin-top: 16px;
             box-shadow: 0 1px 2px rgb(15 23 42 / 0.05); }
     .row { display: flex; gap: 8px; align-items: center; }
     input[type=text] { flex: 1; border: 1px solid #cbd5e1; border-radius: 10px; padding: 10px 12px; font-size: 14px; outline: none; }
-    input[type=text]:focus { border-color: #4f6ef7; box-shadow: 0 0 0 3px #eef4ff; }
-    button { border: 0; border-radius: 10px; background: #4f6ef7; color: #fff; font-weight: 600; font-size: 14px;
+    input[type=text]:focus { border-color: #0F766E; box-shadow: 0 0 0 3px #F1F5F9; }
+    button { border: 0; border-radius: 10px; background: #0F766E; color: #fff; font-weight: 600; font-size: 14px;
              padding: 10px 16px; cursor: pointer; }
     button:disabled { opacity: .6; cursor: default; }
     .muted { color: #64748b; font-size: 13px; }
-    .answer { white-space: pre-wrap; line-height: 1.55; font-size: 14px; }
-    .cite { display: inline-block; background: #eef4ff; color: #3244c4; border-radius: 6px;
-            padding: 1px 6px; font-size: 12px; margin: 2px 2px 0 0; }
+    .answer { white-space: pre-wrap; line-height: 1.65; font-size: 15px;
+           font-family: Georgia, "Times New Roman", serif; }
+    .cite { display: inline-block; background: #F8FAFC; color: #0F766E; border: 1px solid #CBD5E1;
+            border-radius: 4px; padding: 1px 6px; font-size: 11px; margin: 2px 2px 0 0;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
     .refused { color: #b45309; font-style: italic; }
     .chip { border: 1px dashed #cbd5e1; background: #fff; color: #475569; font-weight: 500; font-size: 12px;
             padding: 5px 10px; }
     .lat { font-size: 11px; color: #94a3b8; margin-top: 8px; }
     #drop { border: 1.5px dashed #cbd5e1; border-radius: 12px; padding: 10px 14px; font-size: 13px;
             color: #475569; cursor: pointer; display: inline-block; }
-    #drop:hover { border-color: #4f6ef7; color: #3244c4; }
+    #drop:hover { border-color: #0F766E; color: #0F766E; }
   </style>
 </head>
 <body>
