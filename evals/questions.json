@@ -1,0 +1,26 @@
+{
+  "description": "20-question benchmark over data/sample/company_handbook.txt. Retrieval-only checks run with zero API keys; answer checks need an LLM.",
+  "doc": "company_handbook",
+  "questions": [
+    { "id": 1,  "question": "How many vacation days do full-time employees get per year?", "must_contain": ["20"], "page": 3 },
+    { "id": 2,  "question": "How many vacation days can be carried over to next year?", "must_contain": ["5"], "page": 3 },
+    { "id": 3,  "question": "When can new employees start taking vacation?", "must_contain": ["90"], "page": 3 },
+    { "id": 4,  "question": "How much notice is needed for a 5+ day vacation request?", "must_contain": ["2 weeks"], "page": 3 },
+    { "id": 5,  "question": "How many paid sick days per year?", "must_contain": ["10"], "page": 4 },
+    { "id": 6,  "question": "When is a medical certificate required for sick leave?", "must_contain": ["3"], "page": 4 },
+    { "id": 7,  "question": "Does sick leave carry over between years?", "must_contain": ["not carry"], "page": 4 },
+    { "id": 8,  "question": "How many days per week can employees work remotely by default?", "must_contain": ["3"], "page": 4 },
+    { "id": 9,  "question": "What is the monthly remote work stipend?", "must_contain": ["$150"], "page": 4 },
+    { "id": 10, "question": "What are the standard working hours?", "must_contain": ["9:30", "6:00"], "page": 2 },
+    { "id": 11, "question": "What are the core hours when remote employees must be reachable?", "must_contain": ["11:00", "4:00"], "page": 2 },
+    { "id": 12, "question": "What is the daily meal allowance for business travel?", "must_contain": ["$60"], "page": 5 },
+    { "id": 13, "question": "Within how many days must expense reports be submitted?", "must_contain": ["30"], "page": 5 },
+    { "id": 14, "question": "Who approves expense reports over $500?", "must_contain": ["finance director"], "page": 5 },
+    { "id": 15, "question": "How often do performance reviews happen?", "must_contain": ["twice"], "page": 6 },
+    { "id": 16, "question": "Which months are performance reviews held in?", "must_contain": ["March", "September"], "page": 6 },
+    { "id": 17, "question": "How long must passwords be?", "must_contain": ["12"], "page": 5 },
+    { "id": 18, "question": "What should employees do about suspected phishing emails?", "must_contain": ["security", "24"], "page": 5 },
+    { "id": 19, "question": "Can employees use personal USB drives on company machines?", "must_contain": ["may not"], "page": 5 },
+    { "id": 20, "question": "What is the company policy on quantum computing research grants?", "must_contain": [], "refusal_expected": true, "page": null }
+  ]
+}

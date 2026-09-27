@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DocuMind — chat with your documents</title>
+  <style>
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+           background: #f8fafc; color: #0f172a; }
+    .wrap { max-width: 880px; margin: 0 auto; padding: 24px 16px 64px; }
+    header { display: flex; align-items: baseline; justify-content: space-between; }
+    h1 { font-size: 22px; margin: 0; } h1 span { color: #4f6ef7; }
+    .status { font-size: 12px; color: #64748b; }
+    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 16px; margin-top: 16px;
+            box-shadow: 0 1px 2px rgb(15 23 42 / 0.05); }
+    .row { display: flex; gap: 8px; align-items: center; }
+    input[type=text] { flex: 1; border: 1px solid #cbd5e1; border-radius: 10px; padding: 10px 12px; font-size: 14px; outline: none; }
+    input[type=text]:focus { border-color: #4f6ef7; box-shadow: 0 0 0 3px #eef4ff; }
+    button { border: 0; border-radius: 10px; background: #4f6ef7; color: #fff; font-weight: 600; font-size: 14px;
+             padding: 10px 16px; cursor: pointer; }
+    button:disabled { opacity: .6; cursor: default; }
+    .muted { color: #64748b; font-size: 13px; }
+    .answer { white-space: pre-wrap; line-height: 1.55; font-size: 14px; }
+    .cite { display: inline-block; background: #eef4ff; color: #3244c4; border-radius: 6px;
+            padding: 1px 6px; font-size: 12px; margin: 2px 2px 0 0; }
+    .refused { color: #b45309; font-style: italic; }
+    .chip { border: 1px dashed #cbd5e1; background: #fff; color: #475569; font-weight: 500; font-size: 12px;
+            padding: 5px 10px; }
+    .lat { font-size: 11px; color: #94a3b8; margin-top: 8px; }
+    #drop { border: 1.5px dashed #cbd5e1; border-radius: 12px; padding: 10px 14px; font-size: 13px;
+            color: #475569; cursor: pointer; display: inline-block; }
+    #drop:hover { border-color: #4f6ef7; color: #3244c4; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Docu<span>Mind</span></h1>
+      <span class="status" id="status">loading…</span>
+    </header>
+
+    <div class="card">
+      <div class="row">
+        <label id="drop">📎 Upload PDF / TXT / MD
+          <input type="file" id="file" accept=".pdf,.txt,.md" hidden />
+        </label>
+        <select id="strategy" style="border:1px solid #cbd5e1;border-radius:8px;padding:6px;font-size:12px">
+          <option value="recursive">chunking: recursive</option>
+          <option value="fixed">chunking: fixed</option>
+        </select>
+        <span class="muted" id="uploadInfo"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div id="chat">
+        <p class="muted">Ask anything about your uploaded documents. Answers cite the exact page.</p>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <input type="text" id="q" placeholder="e.g. What is the vacation carryover policy?" />
+        <button id="ask">Ask</button>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button class="chip" data-q="What is the vacation carryover policy?">vacation carryover</button>
+        <button class="chip" data-q="How many days of sick leave do employees get?">sick leave</button>
+        <button class="chip" data-q="What is the remote work stipend?">remote stipend</button>
+        <button class="chip" data-q="Who approves expense reports over $500?">expense approvals</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let busy = false;
+
+fetch("/health").then(r => r.json()).then(h => {
+  $("status").textContent = `${h.chunks} chunks indexed · LLM ${h.llm_configured ? "ready" : "NOT configured (set .env)"}`;
+});
+
+$("file").addEventListener("change", async (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  $("uploadInfo").textContent = `indexing ${f.name}…`;
+  const fd = new FormData();
+  fd.set("file", f);
+  fd.set("strategy", $("strategy").value);
+  const r = await fetch("/upload", { method: "POST", body: fd });
+  const d = await r.json();
+  $("uploadInfo").textContent = r.ok
+    ? `✓ ${d.doc_name}: ${d.pages} pages → ${d.chunks} chunks (${d.strategy})`
+    : `✗ ${d.detail || "upload failed"}`;
+  const h = await (await fetch("/health")).json();
+  $("status").textContent = `${h.chunks} chunks indexed · LLM ${h.llm_configured ? "ready" : "NOT configured"}`;
+});
+
+async function ask(question) {
+  if (!question || busy) return;
+  busy = true; $("ask").disabled = true;
+  const chat = $("chat");
+  chat.insertAdjacentHTML("beforeend",
+    `<div style="margin-top:14px"><b>You</b><div class="answer">${question.replace(/</g,"&lt;")}</div></div>
+     <div style="margin-top:8px"><b>DocuMind</b><div class="answer" id="ans">thinking…</div><div id="cites" class="muted" style="margin-top:6px"></div><div class="lat" id="lat"></div></div>`);
+  $("q").value = "";
+  const t0 = performance.now();
+  try {
+    const r = await fetch(`/chat?question=${encodeURIComponent(question)}`, { method: "POST" });
+    const d = await r.json();
+    if (!r.ok) { $("ans").textContent = d.detail || "error"; $("ans").className = "answer refused"; }
+    else {
+      $("ans").textContent = d.answer;
+      $("ans").className = "answer" + (d.refused ? " refused" : "");
+      $("cites").innerHTML = "Sources: " + d.citations.map(c =>
+        `<span class="cite">${c.doc_name}${c.page ? " p." + c.page : ""} · dist ${c.distance}</span>`).join("");
+      $("lat").textContent = `${d.latency_ms} ms (retrieve + generate)`;
+    }
+  } catch { $("ans").textContent = "network error"; }
+  busy = false; $("ask").disabled = false;
+}
+
+$("ask").addEventListener("click", () => ask($("q").value.trim()));
+$("q").addEventListener("keydown", (e) => { if (e.key === "Enter") ask($("q").value.trim()); });
+document.querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => ask(b.dataset.q)));
+</script>
+</body>
+</html>
