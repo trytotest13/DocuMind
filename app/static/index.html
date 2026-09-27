@@ -74,6 +74,18 @@
 <script>
 const $ = (id) => document.getElementById(id);
 let busy = false;
+const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+async function api(url, opts = {}) {
+  opts.headers = Object.assign({}, opts.headers, { "X-API-Token": localStorage.getItem("api_token") || "" });
+  const r = await fetch(url, opts);
+  if (r.status === 401) {
+    const t = prompt("This server needs an API token (API_TOKEN in its .env)");
+    if (t) { localStorage.setItem("api_token", t); location.reload(); }
+    throw new Error("unauthorized");
+  }
+  return r;
+}
 
 fetch("/health").then(r => r.json()).then(h => {
   $("status").textContent = `${h.chunks} chunks indexed · LLM ${h.llm_configured ? "ready" : "NOT configured (set .env)"}`;
@@ -85,7 +97,7 @@ $("file").addEventListener("change", async (e) => {
   const fd = new FormData();
   fd.set("file", f);
   fd.set("strategy", $("strategy").value);
-  const r = await fetch("/upload", { method: "POST", body: fd });
+  const r = await api("/upload", { method: "POST", body: fd });
   const d = await r.json();
   $("uploadInfo").textContent = r.ok
     ? `✓ ${d.doc_name}: ${d.pages} pages → ${d.chunks} chunks (${d.strategy})`
@@ -104,14 +116,14 @@ async function ask(question) {
   $("q").value = "";
   const t0 = performance.now();
   try {
-    const r = await fetch(`/chat?question=${encodeURIComponent(question)}`, { method: "POST" });
+    const r = await api(`/chat?question=${encodeURIComponent(question)}`, { method: "POST" });
     const d = await r.json();
     if (!r.ok) { $("ans").textContent = d.detail || "error"; $("ans").className = "answer refused"; }
     else {
       $("ans").textContent = d.answer;
       $("ans").className = "answer" + (d.refused ? " refused" : "");
       $("cites").innerHTML = "Sources: " + d.citations.map(c =>
-        `<span class="cite">${c.doc_name}${c.page ? " p." + c.page : ""} · dist ${c.distance}</span>`).join("");
+        `<span class="cite">${esc(c.doc_name)}${c.page ? " p." + c.page : ""} · dist ${c.distance}</span>`).join("");
       $("lat").textContent = `${d.latency_ms} ms (retrieve + generate)`;
     }
   } catch { $("ans").textContent = "network error"; }
