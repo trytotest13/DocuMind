@@ -96,9 +96,9 @@ def main() -> None:
     parser.add_argument("--strategy", default="recursive", choices=["recursive", "fixed"])
     args = parser.parse_args()
 
-    if ingest.collection.count() == 0 or args.strategy:
-        print(f"Ingesting sample doc (strategy={args.strategy})…")
-        ingest_file(SAMPLE_DOC, strategy=args.strategy)
+    # always re-ingest so the chosen chunking strategy is what gets scored
+    print(f"Ingesting sample doc (strategy={args.strategy})…")
+    ingest_file(SAMPLE_DOC, strategy=args.strategy)
 
     print("Running eval…")
     report = run_full(QUESTIONS) if not args.retrieval_only else run_retrieval(QUESTIONS)
