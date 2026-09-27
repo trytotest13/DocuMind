@@ -25,7 +25,7 @@ DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 CHROMA_DIR = DATA_DIR / "chroma"
 
 client = chromadb.PersistentClient(path=str(CHROMA_DIR))
-# Default embedding: all-MiniLM-L6-v2 via ONNX (downloaded once, ~80 MB) — no GPU, no torch.
+# Default embedding: all-MiniLM-L6-v2 via ONNX (downloaded once, ~80 MB): no GPU, no torch.
 collection = client.get_or_create_collection(name="documind", metadata={"hnsw:space": "cosine"})
 
 
@@ -37,7 +37,7 @@ class Chunk:
 
 
 def extract_pages(path: Path) -> list[tuple[int, str]]:
-    """Return [(page_number, text)] — page numbers preserved for citations."""
+    """Return [(page_number, text)]: page numbers preserved for citations."""
     if path.suffix.lower() == ".pdf":
         doc = fitz.open(path)
         pages = [(i + 1, page.get_text("text")) for i, page in enumerate(doc)]

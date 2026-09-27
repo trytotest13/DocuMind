@@ -1,4 +1,4 @@
-"""DocuMind — chat with your documents, with page-level citations.
+"""DocuMind: chat with your documents, with page-level citations.
 
 Endpoints:
   GET  /                 chat UI
@@ -66,7 +66,7 @@ async def upload(file: UploadFile = File(...), strategy: str = Form("recursive")
         raise HTTPException(400, "strategy must be 'recursive' or 'fixed'")
     suffix = Path(file.filename or "").suffix.lower()
     if suffix not in ALLOWED_SUFFIXES:
-        raise HTTPException(400, f"Unsupported file type {suffix!r} — use PDF, TXT or MD")
+        raise HTTPException(400, f"Unsupported file type {suffix!r}: use PDF, TXT or MD")
 
     data = await file.read()
     if not data:

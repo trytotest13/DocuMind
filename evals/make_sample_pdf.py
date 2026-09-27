@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "data" / "sample" / "company_handbook.pdf"
 
 PAGES: dict[int, list[str]] = {
-    1: ["Company Handbook", "Northwind Labs (Sample Document for Testing)", "", "Version 3.2 — internal use only"],
+    1: ["Company Handbook", "Northwind Labs (Sample Document for Testing)", "", "Version 3.2: internal use only"],
     2: [
         "1. WORKING HOURS AND ATTENDANCE",
         "Standard working hours are 9:30 AM to 6:00 PM local time, Monday through",

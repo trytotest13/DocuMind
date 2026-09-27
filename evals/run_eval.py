@@ -66,7 +66,7 @@ def run_full(questions: list[dict]) -> dict:
         try:
             ans = answer_question(q["question"], doc_id="company_handbook")
         except LlmNotConfigured:
-            print("LLM not configured — run with --retrieval-only or set .env")
+            print("LLM not configured: run with --retrieval-only or set .env")
             return run_retrieval(questions)
         llm_n += 1
         text = ans.text.lower()

@@ -1,7 +1,7 @@
 """Grounded generation: answer ONLY from the retrieved context, with citations.
 
 Refusal rule: if the best retrieved chunk is still too dissimilar (cosine distance
-above the threshold), the model is not called at all — we refuse without spending
+above the threshold), the model is not called at all: we refuse without spending
 tokens, which is both cheaper and safer than hoping the LLM behaves.
 """
 from __future__ import annotations
