@@ -38,3 +38,4 @@ Current results on the sample document (recursive chunking): 100% retrieval hit 
 - Move from Chroma to pgvector so the store lives in Postgres.
 - Stream the answers like a normal chat, and keep conversation history.
 - Add a reranker between retrieval and generation, which matters more as the document count grows.
+"# documind-rag" 
