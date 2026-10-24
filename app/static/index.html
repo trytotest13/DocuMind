@@ -17,7 +17,9 @@
     .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 16px; margin-top: 16px;
             box-shadow: 0 1px 2px rgb(15 23 42 / 0.05); }
     .row { display: flex; gap: 8px; align-items: center; }
-    input[type=text] { flex: 1; border: 1px solid #cbd5e1; border-radius: 10px; padding: 10px 12px; font-size: 14px; outline: none; }
+    button { cursor: pointer; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+    input[type=text] { flex: 1; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 10px; padding: 10px 12px; font-size: 14px; outline: none; }
     input[type=text]:focus { border-color: #0F766E; box-shadow: 0 0 0 3px #F1F5F9; }
     button { border: 0; border-radius: 10px; background: #0F766E; color: #fff; font-weight: 600; font-size: 14px;
              padding: 10px 16px; cursor: pointer; }
@@ -62,7 +64,7 @@
         <p class="muted">Ask anything about your uploaded documents. Answers cite the exact page.</p>
       </div>
       <div class="row" style="margin-top:12px">
-        <input type="text" id="q" placeholder="e.g. What is the vacation carryover policy?" />
+        <input type="text" id="q" aria-label="Your question" placeholder="e.g. What is the vacation carryover policy?" />
         <button id="ask">Ask</button>
       </div>
       <div class="row" style="margin-top:8px">
