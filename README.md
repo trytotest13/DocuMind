@@ -1,5 +1,11 @@
 # DocuMind
 
+[![FastAPI](https://img.shields.io/badge/FastAPI-latest-009688)](https://fastapi.tiangolo.com) [![ChromaDB](https://img.shields.io/badge/ChromaDB-embedded-FF6F00)](https://trychroma.com) [![Python](https://img.shields.io/badge/Python-3.11-3776AB)](https://python.org)
+
+![02-documind-rag](docs/screenshot-chat.png)
+
+*The chat UI: upload a document, ask, get answers with page-level citations.*
+
 Chat with your documents and get answers that cite the exact page they came from. Upload a PDF, ask questions, and if the answer is not in the document the app says so instead of making something up.
 
 I kept it to one use case (an HR policy assistant, with a sample company handbook included) so the retrieval quality could actually be measured rather than vibe-checked.
